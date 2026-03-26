@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 13: Natural Law Ethics</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d1a; --card: #161628;
+    --accent1: #f7c948; --accent2: #ff6b6b; --accent3: #4ecdc4; --accent4: #a78bfa;
+    --text: #f0f0ff; --muted: #9092b8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Nunito',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; user-select:none; }
+  .deck { width:100vw; height:100vh; position:relative; }
+  .slide {
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    justify-content:center; align-items:center; padding:56px 72px 80px;
+    opacity:0; pointer-events:none;
+    transition:opacity .4s ease, transform .4s ease; transform:translateX(60px);
+  }
+  .slide.active { opacity:1; pointer-events:all; transform:translateX(0); }
+  .slide.out    { opacity:0; transform:translateX(-60px); }
+
+  .nav {
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%);
+    display:flex; gap:14px; align-items:center; z-index:100;
+    background:rgba(255,255,255,.07); backdrop-filter:blur(12px);
+    padding:10px 24px; border-radius:50px; border:1px solid rgba(255,255,255,.1);
+  }
+  .nav button { background:none; border:none; cursor:pointer; color:var(--text); font-size:1.5rem; padding:4px 10px; border-radius:8px; transition:background .2s; }
+  .nav button:hover { background:rgba(255,255,255,.15); }
+  #counter { font-size:.9rem; color:var(--muted); min-width:60px; text-align:center; }
+
+  .dots { position:fixed; top:20px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:100; flex-wrap:wrap; justify-content:center; max-width:80vw; }
+  .dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.2); cursor:pointer; transition:background .2s, transform .2s; }
+  .dot.active { background:var(--accent1); transform:scale(1.5); }
+
+  .bg-purple { background:radial-gradient(ellipse at 30% 70%, #1a0d3a 0%, #0d0d1a 70%); }
+  .bg-teal   { background:radial-gradient(ellipse at 70% 30%, #0d2e2c 0%, #0d0d1a 70%); }
+  .bg-warm   { background:radial-gradient(ellipse at 50% 80%, #2e1a0d 0%, #0d0d1a 70%); }
+  .bg-cool   { background:radial-gradient(ellipse at 20% 20%, #0d1e3a 0%, #0d0d1a 70%); }
+  .bg-rose   { background:radial-gradient(ellipse at 80% 20%, #2e0d1a 0%, #0d0d1a 70%); }
+
+  .badge { display:inline-block; font-size:.8rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; padding:5px 16px; border-radius:30px; margin-bottom:14px; }
+  .by { background:rgba(247,201,72,.18);  color:var(--accent1); border:1px solid rgba(247,201,72,.4); }
+  .bt { background:rgba(78,205,196,.15);  color:var(--accent3); border:1px solid rgba(78,205,196,.35); }
+  .br { background:rgba(255,107,107,.15); color:var(--accent2); border:1px solid rgba(255,107,107,.35); }
+  .bp { background:rgba(167,139,250,.15); color:var(--accent4); border:1px solid rgba(167,139,250,.35); }
+
+  .stitle { font-family:'Bebas Neue',sans-serif; font-size:clamp(2.8rem,6vw,5rem); text-align:center; line-height:1; }
+  .ssub   { text-align:center; color:var(--muted); font-size:1.1rem; margin-top:8px; max-width:700px; }
+
+  .card { background:var(--card); border-radius:18px; padding:24px 26px; border:1px solid rgba(255,255,255,.07); transition:transform .2s, box-shadow .2s; }
+  .card:hover { transform:translateY(-5px); box-shadow:0 14px 44px rgba(0,0,0,.45); }
+  .card .icon { font-size:2.4rem; margin-bottom:10px; }
+  .card h3    { font-size:1.15rem; font-weight:800; margin-bottom:6px; }
+  .card p     { font-size:.95rem; color:var(--muted); line-height:1.6; }
+  .cy { border-top:3px solid var(--accent1); }
+  .cr { border-top:3px solid var(--accent2); }
+  .ct { border-top:3px solid var(--accent3); }
+  .cp { border-top:3px solid var(--accent4); }
+
+  .grid { display:grid; gap:16px; width:100%; max-width:960px; margin-top:26px; }
+  .g2 { grid-template-columns:1fr 1fr; }
+  .g3 { grid-template-columns:1fr 1fr 1fr; }
+
+  .callout { max-width:760px; text-align:center; background:linear-gradient(135deg,rgba(167,139,250,.14),rgba(247,201,72,.07)); border:1px solid rgba(167,139,250,.22); border-radius:22px; padding:36px 48px; margin-top:28px; font-size:1.3rem; line-height:1.75; color:#d4d4ff; }
+  .callout strong { color:var(--accent1); }
+
+  .tl { display:flex; flex-direction:column; gap:16px; width:100%; max-width:800px; margin-top:26px; }
+  .tl-row { display:flex; gap:18px; align-items:flex-start; }
+  .tl-num { min-width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0; }
+  .tl-body h4 { font-size:1.1rem; font-weight:800; }
+  .tl-body p  { font-size:.95rem; color:var(--muted); margin-top:3px; line-height:1.5; }
+
+  .pills { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:24px; max-width:820px; }
+  .pill  { padding:10px 22px; border-radius:32px; font-size:1rem; font-weight:700; background:var(--card); border:1px solid rgba(255,255,255,.1); }
+
+  .two { display:flex; gap:28px; width:100%; max-width:960px; margin-top:26px; align-items:flex-start; }
+  .two .col { flex:1; }
+
+  /* TITLE */
+  #s0 { background:radial-gradient(ellipse at 60% 40%,#1a1040 0%,#0d0d1a 70%); text-align:center; gap:20px; }
+  #s0 h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(3.6rem,9vw,7.5rem); line-height:1; background:linear-gradient(135deg,#f7c948,#ff6b6b,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  #s0 .sub { font-size:1.25rem; color:var(--muted); max-width:520px; }
+  .orbs { position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:-1; }
+  .orb  { position:absolute; border-radius:50%; filter:blur(80px); opacity:.25; }
+  .orb1 { width:400px;height:400px;background:#a78bfa;top:-80px;left:-80px;animation:float 8s ease-in-out infinite; }
+  .orb2 { width:320px;height:320px;background:#f7c948;bottom:-60px;right:-60px;animation:float 10s ease-in-out infinite reverse; }
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+
+  @media(max-width:700px){
+    .g3,.g2{grid-template-columns:1fr 1fr;}
+    .two{flex-direction:column;}
+    .slide{padding:36px 24px 72px;}
+  }
+</style>
+</head>
+<body>
+<div class="dots" id="dots"></div>
+<div class="deck" id="deck">
+
+<!-- 0 TITLE -->
+<div class="slide active" id="s0">
+  <div class="orbs"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+  <div class="badge bt">Week 13 · Ethics</div>
+  <h1>Natural<br>Law Theory</h1>
+  <p class="sub">Moral rules written into human nature — discoverable through reason</p>
+</div>
+
+<!-- 1 WHAT IS NATURAL LAW -->
+<div class="slide bg-purple">
+  <div class="badge bp">Core Concept</div>
+  <div class="stitle">What Is <span style="color:var(--accent4)">Natural Law?</span></div>
+  <div class="callout">
+    Moral rules are <strong>objective &amp; universal truths</strong><br>found in human nature —<br>discoverable through <strong>reason alone</strong>.
+  </div>
+</div>
+
+<!-- 2 KEY TRAITS -->
+<div class="slide bg-purple">
+  <div class="badge bp">Key Traits</div>
+  <div class="stitle">4 Core <span style="color:var(--accent4)">Characteristics</span></div>
+  <div class="grid g2" style="max-width:780px">
+    <div class="card cp"><div class="icon">🌿</div><h3>Grounded in Nature</h3><p>Moral truth lives in human nature itself — not in laws or religion</p></div>
+    <div class="card cp"><div class="icon">🧠</div><h3>Accessible by Reason</h3><p>Every human can discover right and wrong through rational thought</p></div>
+    <div class="card cp"><div class="icon">🌍</div><h3>Universal</h3><p>Applies to ALL humans regardless of culture, society, or upbringing</p></div>
+    <div class="card cp"><div class="icon">⏳</div><h3>Unchanging &amp; Objective</h3><p>Moral laws never change — fixed into the nature of things</p></div>
+  </div>
+</div>
+
+<!-- 3 STOICS -->
+<div class="slide bg-teal">
+  <div class="badge bt">Origins · 1st Century BC</div>
+  <div class="stitle">The <span style="color:var(--accent3)">Stoics</span></div>
+  <div class="ssub">First thinkers to formalise natural law philosophy</div>
+  <div class="grid g2" style="max-width:780px">
+    <div class="card ct"><div class="icon">🔥</div><h3>Logos Spermatikos</h3><p>A "divine spark" in every human enabling discovery of eternal cosmic laws</p></div>
+    <div class="card ct"><div class="icon">🌊</div><h3>Live According to Nature</h3><p>Wisdom = accepting universal necessity. Everything follows rational law.</p></div>
+  </div>
+</div>
+
+<!-- 4 STOICS 2 -->
+<div class="slide bg-teal">
+  <div class="badge bt">Stoics — Continued</div>
+  <div class="stitle">Nature = <span style="color:var(--accent3)">Law = Reason</span></div>
+  <div class="two" style="align-items:center;max-width:820px">
+    <div class="col" style="text-align:center"><div style="font-size:7rem">⚖️</div></div>
+    <div class="col">
+      <div class="card ct" style="margin-bottom:14px"><div class="icon">🌀</div><h3>Nothing Happens by Chance</h3><p>All things have a purpose — the universe is governed by rational order</p></div>
+      <div class="card ct"><div class="icon">😶</div><h3>Fatalism Risk</h3><p>Taken to extreme: "Things cannot be changed" — a warning against passive acceptance</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 5 ARISTOTLE -->
+<div class="slide bg-warm">
+  <div class="badge by">Aristotle · 384–322 BC</div>
+  <div class="stitle"><span style="color:var(--accent1)">Aristotle's</span> Influence</div>
+  <div class="grid g2" style="max-width:820px">
+    <div class="card cy"><div class="icon">🌰</div><h3>The Acorn Principle</h3><p>Everything moves from <em>potentiality → actuality</em>. An acorn's purpose is to become an oak tree.</p></div>
+    <div class="card cy"><div class="icon">🎯</div><h3>Telos — Purpose</h3><p>Every being has an intrinsic purpose. Self-realisation is the reason for existence.</p></div>
+    <div class="card cy"><div class="icon">❤️</div><h3>Unique Human Function</h3><p>The one thing humans do best: <strong>think &amp; reason</strong></p></div>
+    <div class="card cy"><div class="icon">✅</div><h3>To Be Good = Be Rational</h3><p>Follow nature → follow reason → fulfill purpose → be good</p></div>
+  </div>
+</div>
+
+<!-- 6 AQUINAS INCLINATIONS 1-4 -->
+<div class="slide bg-cool">
+  <div class="badge by">St. Thomas Aquinas</div>
+  <div class="stitle">Natural <span style="color:var(--accent1)">Inclinations</span> 1–4</div>
+  <div class="grid g2" style="max-width:820px">
+    <div class="card cy"><div class="icon">🛡️</div><h3>1 · Self-Preservation</h3><p>Every person has the drive to preserve their own life and existence</p></div>
+    <div class="card cr"><div class="icon">👨‍👩‍👧</div><h3>2 · Reproduction</h3><p>Unite sexually to produce offspring — continue the human race</p></div>
+    <div class="card ct"><div class="icon">📚</div><h3>3 · Educate Offspring</h3><p>Nurture and guide children in growth and learning</p></div>
+    <div class="card cp"><div class="icon">🙏</div><h3>4 · Seek God</h3><p>Recognise and pursue a relationship with the Divine Creator</p></div>
+  </div>
+</div>
+
+<!-- 7 AQUINAS INCLINATIONS 5-7 -->
+<div class="slide bg-cool">
+  <div class="badge by">St. Thomas Aquinas</div>
+  <div class="stitle">Natural <span style="color:var(--accent1)">Inclinations</span> 5–7</div>
+  <div class="grid g3" style="max-width:900px">
+    <div class="card cy"><div class="icon">🤝</div><h3>5 · Live in Society</h3><p>Just and fair dealings with others; live in peace and harmony</p></div>
+    <div class="card cr"><div class="icon">🕊️</div><h3>6 · Avoid Offense</h3><p>Act with respect and avoid harming or offending others</p></div>
+    <div class="card ct"><div class="icon">💡</div><h3>7 · Seek Truth &amp; Shun Ignorance</h3><p>Use reason and intellect to know truth and seek the good</p></div>
+  </div>
+  <p class="ssub" style="margin-top:20px">All 7 lead to the ultimate goal: <strong style="color:var(--accent1)">Eternal Happiness with God</strong></p>
+</div>
+
+<!-- 8 PRINCIPLES OVERVIEW -->
+<div class="slide bg-purple">
+  <div class="badge bp">Ethical Principles A–G</div>
+  <div class="stitle">6 Key <span style="color:var(--accent4)">Principles</span></div>
+  <div class="grid g3" style="margin-top:24px">
+    <div class="card cy"><div class="icon">⚖️</div><h3>A · Double Effect</h3><p>When can an act with good &amp; bad outcomes be justified?</p></div>
+    <div class="card cr"><div class="icon">❤️‍🔥</div><h3>B · Inviolability</h3><p>All human life is sacred and of infinite worth</p></div>
+    <div class="card ct"><div class="icon">🔓</div><h3>C · Forfeiture</h3><p>Aggressors forfeit their rights — self-defense is moral</p></div>
+    <div class="card cp"><div class="icon">🧩</div><h3>D · Totality</h3><p>A part may be sacrificed for the health of the whole</p></div>
+    <div class="card cy"><div class="icon">🌱</div><h3>E · Stewardship</h3><p>We are caretakers, not owners, of life and creation</p></div>
+    <div class="card cr"><div class="icon">⚔️</div><h3>F &amp; G · War &amp; Rebellion</h3><p>Violence only when all strict conditions are met</p></div>
+  </div>
+</div>
+
+<!-- 9 DOUBLE EFFECT INTRO -->
+<div class="slide bg-warm">
+  <div class="badge by">Principle A</div>
+  <div class="stitle">Principle of <span style="color:var(--accent1)">Double Effect</span></div>
+  <div class="callout" style="font-size:1.2rem">
+    Some acts produce <strong>both a good and a bad outcome</strong>.<br><br>
+    This principle decides when such an act is<br><strong>morally permissible</strong>.
+  </div>
+</div>
+
+<!-- 10 DOUBLE EFFECT CONDITIONS -->
+<div class="slide bg-warm">
+  <div class="badge by">Principle A — All 4 Must Be Met</div>
+  <div class="stitle">Double Effect: <span style="color:var(--accent1)">4 Conditions</span></div>
+  <div class="tl" style="margin-top:22px">
+    <div class="tl-row">
+      <div class="tl-num" style="background:rgba(247,201,72,.2);color:var(--accent1)">1</div>
+      <div class="tl-body"><h4>The act itself must be good or neutral</h4><p>Cannot do evil — even with a good goal in mind</p></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-num" style="background:rgba(247,201,72,.2);color:var(--accent1)">2</div>
+      <div class="tl-body"><h4>Evil effect must NOT be directly intended</h4><p>Only permitted as a regrettable side effect</p></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-num" style="background:rgba(247,201,72,.2);color:var(--accent1)">3</div>
+      <div class="tl-body"><h4>Evil must NOT be the means to the good</h4><p>"The end does NOT justify the means"</p></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-num" style="background:rgba(247,201,72,.2);color:var(--accent1)">4</div>
+      <div class="tl-body"><h4>Good effect must outweigh the evil</h4><p>More harm than good = act is not justified</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 11 INVIOLABILITY -->
+<div class="slide bg-rose">
+  <div class="badge br">Principle B</div>
+  <div class="stitle">Inviolability <span style="color:var(--accent2)">of Life</span></div>
+  <div class="grid g2" style="max-width:820px">
+    <div class="card cr"><div class="icon">❤️‍🔥</div><h3>Life is Sacred</h3><p>All human life — from conception — is created in the image and likeness of God</p></div>
+    <div class="card cr"><div class="icon">⚖️</div><h3>All Lives Are Equal</h3><p>A criminal's life = an upright person's life. Status does not determine worth.</p></div>
+    <div class="card cr"><div class="icon">🚫</div><h3>No Innocent Life Can Be Killed</h3><p>INVIOLABILITY: no innocent person can ever be directly killed</p></div>
+    <div class="card cr"><div class="icon">👶</div><h3>Includes the Unborn</h3><p>The fetus has the full natural right to life at every stage of development</p></div>
+  </div>
+</div>
+
+<!-- 12 FORFEITURE -->
+<div class="slide bg-cool">
+  <div class="badge bt">Principle C</div>
+  <div class="stitle">Principle of <span style="color:var(--accent3)">Forfeiture</span></div>
+  <div class="two" style="max-width:860px;align-items:center">
+    <div class="col" style="text-align:center">
+      <div style="font-size:7rem">🔓</div>
+      <p class="ssub" style="margin-top:10px">An aggressor forfeits their right to life by threatening yours</p>
+    </div>
+    <div class="col">
+      <div class="card ct" style="margin-bottom:14px"><div class="icon">🛡️</div><h3>Self-Defense is Moral</h3><p>Taking life in genuine self-defense is morally justified — it is not murder</p></div>
+      <div class="card ct"><div class="icon">⚔️</div><h3>Killing ≠ Murder</h3><p>Killing = taking a non-innocent life (just). Murder = taking an innocent life (unjust).</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 13 TOTALITY -->
+<div class="slide bg-teal">
+  <div class="badge bt">Principle D</div>
+  <div class="stitle">Principle of <span style="color:var(--accent3)">Totality</span></div>
+  <div class="callout" style="font-size:1.2rem">
+    A <strong>part exists for the good of the whole</strong>.<br><br>
+    A diseased organ may be removed to save the body —<br>only when the <strong>whole body's wellbeing requires it</strong>.
+  </div>
+  <div class="pills" style="margin-top:26px">
+    <div class="pill">🧩 Part sacrificed for the whole</div>
+    <div class="pill">🚫 Removing healthy organs = immoral</div>
+    <div class="pill">🙏 We administer, not own, our bodies</div>
+  </div>
+</div>
+
+<!-- 14 STEWARDSHIP -->
+<div class="slide bg-teal">
+  <div class="badge bt">Principle E</div>
+  <div class="stitle"><span style="color:var(--accent3)">Stewardship</span></div>
+  <div class="grid g3" style="max-width:900px">
+    <div class="card ct"><div class="icon">🌍</div><h3>God Owns All Life</h3><p>We are caretakers — not owners — of our bodies and the earth</p></div>
+    <div class="card ct"><div class="icon">🚫</div><h3>Suicide &amp; Euthanasia = Immoral</h3><p>Only God has dominion over life; it is not ours to end</p></div>
+    <div class="card ct"><div class="icon">💊</div><h3>Duty to Seek Medical Aid</h3><p>We have a moral responsibility to protect and care for the body</p></div>
+  </div>
+  <p class="ssub" style="margin-top:22px">🌿 Also applies to <strong style="color:var(--accent3)">Environmental Ethics</strong> — protect nature as a collective moral duty</p>
+</div>
+
+<!-- 15 JUST WAR INTRO -->
+<div class="slide bg-warm">
+  <div class="badge br">Principle F</div>
+  <div class="stitle">Just <span style="color:var(--accent2)">War Theory</span></div>
+  <div class="callout" style="font-size:1.2rem">
+    A nation may go to <strong>defensive war</strong> against an unjust aggressor —<br><br>
+    but only when <strong>ALL 7 conditions</strong> are strictly satisfied.
+  </div>
+  <p class="ssub" style="margin-top:20px">Based on Forfeiture — the aggressor forfeits their right to life</p>
+</div>
+
+<!-- 16 JUST WAR 1-4 -->
+<div class="slide bg-warm">
+  <div class="badge br">Just War — Conditions 1–4</div>
+  <div class="stitle">Just War: <span style="color:var(--accent2)">First 4</span></div>
+  <div class="grid g2" style="max-width:840px">
+    <div class="card cr"><div class="icon">📜</div><h3>1 · Lawful Authority</h3><p>Only Congress can declare war — never a private individual or group</p></div>
+    <div class="card cr"><div class="icon">⚖️</div><h3>2 · Just Cause</h3><p>Protect innocents from harm; restore rights unjustly seized</p></div>
+    <div class="card cr"><div class="icon">🕊️</div><h3>3 · Last Resort</h3><p>All diplomacy, dialogue, mediation, and negotiation must be exhausted first</p></div>
+    <div class="card cr"><div class="icon">💛</div><h3>4 · Good Intention</h3><p>Motive must be peace and justice — NOT revenge, power, or greed</p></div>
+  </div>
+</div>
+
+<!-- 17 JUST WAR 5-7 -->
+<div class="slide bg-warm">
+  <div class="badge br">Just War — Conditions 5–7</div>
+  <div class="stitle">Just War: <span style="color:var(--accent2)">Last 3</span></div>
+  <div class="grid g3" style="max-width:900px">
+    <div class="card cr"><div class="icon">🎯</div><h3>5 · Chance of Success</h3><p><strong>Unwinnable war = immoral war</strong> — do not risk lives for a losing cause</p></div>
+    <div class="card cr"><div class="icon">🚫</div><h3>6 · Right Means</h3><p>No WMDs, no chemical or biological weapons — ordinary combat only</p></div>
+    <div class="card cr"><div class="icon">📏</div><h3>7 · Proportional Response</h3><p>Force must be proportional to the provocation — no wanton slaughter or overkill</p></div>
+  </div>
+</div>
+
+<!-- 18 REBELLION INTRO -->
+<div class="slide bg-purple">
+  <div class="badge bp">Principle G</div>
+  <div class="stitle">Justified <span style="color:var(--accent4)">Rebellion</span></div>
+  <div class="callout" style="font-size:1.2rem">
+    Citizens may rise against a <strong>tyrannical government</strong> —<br><br>
+    but only under <strong>rare, extreme</strong> circumstances<br>where ALL 5 conditions are met.
+  </div>
+</div>
+
+<!-- 19 REBELLION CONDITIONS -->
+<div class="slide bg-purple">
+  <div class="badge bp">Rebellion — 5 Conditions</div>
+  <div class="stitle">When Is <span style="color:var(--accent4)">Revolt</span> Justified?</div>
+  <div class="tl" style="margin-top:20px">
+    <div class="tl-row">
+      <div class="tl-num" style="background:rgba(167,139,250,.2);color:var(--accent4)">1</div>
+      <div class="tl-body"><h4>Clear, long-standing tyranny</h4><p>Government has trampled fundamental rights and abandoned the common good</p></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-num" style="background:rgba(167,139,250,.2);color:var(--accent4)">2</div>
+      <div class="tl-body"><h4>All peaceful means exhausted</h4><p>Impeachment and constitutional reforms have been tried and have failed</p></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-num" style="background:rgba(167,139,250,.2);color:var(--accent4)">3</div>
+      <div class="tl-body"><h4>Reasonable probability of success</h4><p>Will it result in more good than harm? A doomed revolt is immoral.</p></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-num" style="background:rgba(167,139,250,.2);color:var(--accent4)">4</div>
+      <div class="tl-body"><h4>Good proportionate to damage inflicted</h4><p>Cost to lives and property must not outweigh what is gained</p></div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-num" style="background:rgba(167,139,250,.2);color:var(--accent4)">5</div>
+      <div class="tl-body"><h4>Decision by the majority</h4><p>Must reflect the will of the people — not the opinion of a private few</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 20 SUMMARY -->
+<div class="slide" style="background:radial-gradient(ellipse at 50% 50%,#1a0d3a 0%,#0d0d1a 70%);text-align:center;gap:20px">
+  <div class="badge by">Summary</div>
+  <div class="stitle" style="font-size:clamp(2.2rem,5vw,4.2rem)">8 Central Ideas of <span style="color:var(--accent1)">Natural Law</span></div>
+  <div class="pills">
+    <div class="pill">🎯 Everything has a purpose</div>
+    <div class="pill">🧬 Humans have rational nature</div>
+    <div class="pill">📖 Morality is built into nature</div>
+    <div class="pill">🔍 Reason reveals right &amp; wrong</div>
+    <div class="pill">🌍 Laws are universal &amp; unchanging</div>
+    <div class="pill">✅ Moral laws are objectively valid</div>
+    <div class="pill">⚖️ Cultures can be judged by natural law</div>
+    <div class="pill" style="background:rgba(247,201,72,.15);border-color:rgba(247,201,72,.4);color:var(--accent1);font-size:1.1rem">✨ First Precept: DO GOOD, AVOID EVIL</div>
+  </div>
+</div>
+
+</div>
+
+<div class="nav">
+  <button id="prev">‹</button>
+  <span id="counter">1 / 21</span>
+  <button id="next">›</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  let cur = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => go(i));
+    dotsEl.appendChild(d);
+  });
+
+  function go(n) {
+    slides[cur].classList.remove('active');
+    slides[cur].classList.add('out');
+    setTimeout(() => slides[cur].classList.remove('out'), 420);
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+    counter.textContent = `${cur + 1} / ${slides.length}`;
+  }
+
+  document.getElementById('next').addEventListener('click', () => go(cur + 1));
+  document.getElementById('prev').addEventListener('click', () => go(cur - 1));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(cur + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(cur - 1);
+  });
+  let tx = 0;
+  document.addEventListener('touchstart', e => tx = e.touches[0].clientX);
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) go(dx < 0 ? cur + 1 : cur - 1);
+  });
+</script>
+</body>
+</html>
